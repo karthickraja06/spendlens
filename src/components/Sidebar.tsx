@@ -1,11 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Wallet, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Wallet, CreditCard, Target, RotateCcw, Tag } from 'lucide-react';
 
 export const Sidebar = () => {
   const navItems = [
     { label: 'Dashboard', href: '/', icon: LayoutDashboard },
     { label: 'Accounts', href: '/accounts', icon: CreditCard },
     { label: 'Transactions', href: '/transactions', icon: Wallet },
+    { label: 'Budgets', href: '/budgets', icon: Target },
+    { label: 'Refunds', href: '/refunds', icon: RotateCcw },
+    { label: 'Categories', href: '/categories', icon: Tag },
   ];
 
   return (
