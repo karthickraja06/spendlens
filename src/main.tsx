@@ -6,7 +6,7 @@ import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter basename ='/spendlens/'>
+    <BrowserRouter basename="/spendlens">
       <App />
     </BrowserRouter>
   </StrictMode>
