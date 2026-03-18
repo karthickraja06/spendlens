@@ -20,10 +20,30 @@ const BANK_LOGOS: Record<string, string> = {
   cash: '/spendlens/bank-logos/cash.png'
 };
 
+// Credit card backgrounds for each bank
+const CARD_BACKGROUNDS: Record<string, string> = {
+  hdfc: '/creditcard/backgrounds/hdfc.png',
+  HDFC: '/creditcard/backgrounds/hdfc.png',
+  icici: '/creditcard/backgrounds/icici.png',
+  axis: '/creditcard/backgrounds/axis.png',
+  sbi: '/creditcard/backgrounds/sbi.png',
+  'state bank of india': '/creditcard/backgrounds/sbi.png',
+  'indian bank': '/creditcard/backgrounds/indianbank.png',
+  airtel: '/creditcard/backgrounds/airtel.png',
+  paytm: '/creditcard/backgrounds/paytm.png',
+  default: '/creditcard/backgrounds/default.png'
+};
+
 function getBankLogo(bankName: string) {
   if (!bankName) return '/bank-logos/default.png';
   const key = bankName.trim().toLowerCase();
   return BANK_LOGOS[key] || '/bank-logos/default.png';
+}
+
+function getCardBackground(bankName: string) {
+  if (!bankName) return CARD_BACKGROUNDS.default;
+  const key = bankName.trim().toLowerCase();
+  return CARD_BACKGROUNDS[key] || CARD_BACKGROUNDS.default;
 }
 
 const AccountDetailSheet = ({
@@ -311,15 +331,6 @@ export const Dashboard = () => {
             </button>
           </div>
         </div>
-        <button
-          onClick={handleSyncBalances}
-          disabled={syncing}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          title="Sync and refresh account balances from transactions"
-        >
-          <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />
-          {syncing ? 'Syncing...' : 'Sync'}
-        </button>
       </div>
 
       {budgetAlerts.length > 0 && (
