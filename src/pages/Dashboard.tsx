@@ -19,10 +19,30 @@ const BANK_LOGOS: Record<string, string> = {
   cash: '/spendlens/bank-logos/cash.png'
 };
 
+// Credit card backgrounds for each bank
+const CARD_BACKGROUNDS: Record<string, string> = {
+  hdfc: '/creditcard/backgrounds/hdfc.png',
+  HDFC: '/creditcard/backgrounds/hdfc.png',
+  icici: '/creditcard/backgrounds/icici.png',
+  axis: '/creditcard/backgrounds/axis.png',
+  sbi: '/creditcard/backgrounds/sbi.png',
+  'state bank of india': '/creditcard/backgrounds/sbi.png',
+  'indian bank': '/creditcard/backgrounds/indianbank.png',
+  airtel: '/creditcard/backgrounds/airtel.png',
+  paytm: '/creditcard/backgrounds/paytm.png',
+  default: '/creditcard/backgrounds/default.png'
+};
+
 function getBankLogo(bankName: string) {
   if (!bankName) return '/bank-logos/default.png';
   const key = bankName.trim().toLowerCase();
   return BANK_LOGOS[key] || '/bank-logos/default.png';
+}
+
+function getCardBackground(bankName: string) {
+  if (!bankName) return CARD_BACKGROUNDS.default;
+  const key = bankName.trim().toLowerCase();
+  return CARD_BACKGROUNDS[key] || CARD_BACKGROUNDS.default;
 }
 
 const AccountDetailSheet = ({
@@ -271,20 +291,22 @@ export const Dashboard = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-      <div className="mb-8 flex justify-between items-center">
+      {/* Header */}
+      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h2>
-          <p className="text-gray-600">Welcome back! Here's your financial overview.</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Money Manager</h2>
         </div>
-        <button
-          onClick={handleSyncBalances}
-          disabled={syncing}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          title="Sync and refresh account balances from transactions"
-        >
-          <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />
-          {syncing ? 'Syncing...' : 'Sync'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={handleSyncBalances}
+            disabled={syncing}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            title="Sync and refresh account balances from transactions"
+          >
+            <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Syncing...' : 'Sync'}
+          </button>
+        </div>
       </div>
 
       {budgetAlerts.length > 0 && (
@@ -394,88 +416,101 @@ export const Dashboard = () => {
         </div>
       </div>
 
-      {/* Credit cards stacked preview */}
-      <div className="mb-24 md:mb-6">
-        <p className="text-sm text-gray-600 mb-2">Credit Cards</p>
-        <div className="relative h-48">
-          {accounts.filter(a => a.accountType === 'credit_card').slice(0,3).map((card, i) => (
-            <div key={card.id} className={`absolute left-${i * 4} top-${i * 2} w-72 h-36 rounded-xl shadow-lg transform transition-all`} style={{ left: `${i * 18}px`, top: `${i * 8}px`, zIndex: 10 - i }}>
-              <div className="h-full rounded-xl p-4 text-white" style={{ background: 'linear-gradient(90deg,#ff5f6d,#ff9966)' }}>
-                <div className="flex items-center justify-between">
+      {/* Credit cards horizontal scroll */}
+      {accounts.filter(a => a.accountType === 'credit_card').length > 0 && (
+        <div className="mb-6 md:mb-8">
+          <p className="text-sm text-gray-600 mb-3 font-medium">Credit Cards</p>
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory">
+            {accounts.filter(a => a.accountType === 'credit_card').map((card) => (
+              <div 
+                key={card.id} 
+                className="flex-shrink-0 w-80 snap-center h-40 rounded-2xl p-5 text-white shadow-lg transform transition-all hover:shadow-xl bg-cover bg-center relative overflow-hidden"
+                style={{ backgroundImage: `url('${getCardBackground(card.bankName)}')` }}
+              >
+                {/* Overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/30 to-black/10 pointer-events-none" />
+                
+                <div className="h-full flex flex-col justify-between relative z-10">
                   <div>
-                    <p className="text-xs opacity-90">{card.bankName}</p>
-                    <p className="text-sm font-mono mt-1">{card.accountNumber}</p>
+                    <p className="text-xs opacity-90 font-medium">{card.bankName}</p>
+                    <p className="text-sm font-mono mt-2 opacity-95">•••• {card.accountNumber?.slice(-4) || '••••'}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm">Outstanding</p>
-                    <p className="text-lg font-semibold">{formatCurrency(card.balance)}</p>
+                  
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="text-xs opacity-85 font-medium">Outstanding</p>
+                      <p className="text-2xl font-bold mt-1">{formatCurrency(Math.abs(card.balance))}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs opacity-85">Balance</p>
+                      <p className="text-sm font-semibold">{card.balanceSource === 'sms' ? 'SMS' : 'Calc'}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 flex items-center justify-between text-xs opacity-90">
-                  <button className="bg-white/20 px-3 py-1 rounded">Set billing cycle</button>
-                  <button className="bg-white/10 px-3 py-1 rounded">Flip</button>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
+      {/* Recent Transactions - Horizontal Scrollable */}
+      <div className="mb-6 md:mb-8">
+        <div className="mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
         </div>
-        <div className="divide-y divide-gray-200">
-          {recentTransactions.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500">
-              No transactions found
-            </div>
-          ) : (
-            recentTransactions.map((txn) => {
-              const account = accounts.find((a) => a.id === txn.accountId);
+        
+        {recentTransactions.length === 0 ? (
+          <div className="bg-white rounded-lg border border-gray-200 px-6 py-8 text-center text-gray-500">
+            No transactions found
+          </div>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 md:mx-0 md:px-0 snap-x snap-mandatory">
+            {recentTransactions.map((txn) => {
               const isDebit = txn.type === 'debit';
 
               return (
-                <div key={txn.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        isDebit ? 'bg-red-100' : 'bg-green-100'
-                      }`}
-                    >
-                      {isDebit ? (
-                        <TrendingDown size={20} className="text-red-600" />
-                      ) : (
-                        <TrendingUp size={20} className="text-green-600" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">{txn.merchantName}</p>
-                      <p className="text-sm text-gray-500 truncate">
-                        {account?.bankName} • {account?.accountNumber}
-                      </p>
-                    </div>
+                <div
+                  key={txn.id}
+                  className="flex-shrink-0 w-48 snap-center bg-white rounded-2xl border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                >
+                  {/* Icon */}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${
+                    isDebit ? 'bg-red-100' : 'bg-green-100'
+                  }`}>
+                    {isDebit ? (
+                      <TrendingDown size={24} className="text-red-600" />
+                    ) : (
+                      <TrendingUp size={24} className="text-green-600" />
+                    )}
                   </div>
-                  <div className="text-right">
-                    <p
-                      className={`font-semibold ${
-                        isDebit ? 'text-red-600' : 'text-green-600'
-                      }`}
-                    >
-                      {isDebit ? '-' : '+'}{formatCurrency(txn.amount)}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {txn.transactionDate.toLocaleDateString('en-US', {
+
+                  {/* Content */}
+                  <p className="text-sm font-semibold text-gray-900 truncate">
+                    {txn.merchantName}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 truncate">
+                    {txn.category || 'Uncategorized'}
+                  </p>
+
+                  {/* Amount and Date */}
+                  <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      {txn.transactionDate.toLocaleDateString('en-IN', {
                         month: 'short',
                         day: 'numeric',
                       })}
                     </p>
+                    <p className={`font-bold text-sm ${
+                      isDebit ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      {isDebit ? '-' : '+'}{formatCurrency(txn.amount)}
+                    </p>
                   </div>
                 </div>
               );
-            })
-          )}
-        </div>
+            })}
+          </div>
+        )}
       </div>
       <BottomSheet open={isAccountExpanded} onClose={closeAccount}>
         {accountDetails && selectedAccount ? (
